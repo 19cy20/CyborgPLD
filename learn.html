@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PLD Learn Gallery</title>
+  <style>
+    body {
+      background: #181a1b;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      text-align: center;
+      color: #4dffea;
+      margin-top: 1em;
+      margin-bottom: 0.5em;
+    }
+    .gallery-scroll {
+      display: flex;
+      overflow-x: auto;
+      gap: 1em;
+      padding: 2em 1em;
+      scroll-behavior: smooth;
+      background: #23272b;
+    }
+    .gallery-scroll img {
+      height: 120px;
+      border-radius: 12px;
+      cursor: pointer;
+      border: 3px solid transparent;
+      transition: border 0.2s, transform 0.2s;
+    }
+    .gallery-scroll img:hover {
+      border: 3px solid #4dffea;
+      transform: scale(1.07);
+    }
+
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      left: 0; top: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    .modal-content {
+      max-width: 90vw;
+      max-height: 80vh;
+      border-radius: 12px;
+      box-shadow: 0 6px 32px rgba(0,0,0,0.8);
+      outline: 5px solid #4dffea;
+    }
+    .modal-controls {
+      margin-top: 1em;
+      display: flex;
+      justify-content: center;
+      gap: 2em;
+    }
+    .modal-btn {
+      background: #4dffea;
+      color: #181a1b;
+      border: none;
+      padding: 0.5em 2em;
+      border-radius: 8px;
+      font-size: 1.2em;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s, color 0.2s;
+    }
+    .modal-btn:hover {
+      background: #34c8b6;
+      color: #fff;
+    }
+    .modal-close {
+      position: absolute;
+      top: 1.5em;
+      right: 2em;
+      font-size: 2em;
+      color: #fff;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    @media (max-width: 600px) {
+      .gallery-scroll img {
+        height: 70px;
+      }
+      .modal-content {
+        max-height: 50vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>PLD Learn Gallery</h1>
+  <div class="gallery-scroll" id="gallery">
+    <!-- Change the src to your own images or add more! -->
+    <img src="cover1.jpg" alt="1">
+    <img src="toc.jpg" alt="2">
+    <img src="s.jpg" alt="3">
+    <img src="a.jpg" alt="4">
+    <img src="t.jpg" alt="5">
+    <!-- Add or remove images as needed -->
+  </div>
+
+  <!-- Modal for enlarged image -->
+  <div class="modal" id="modal">
+    <button class="modal-close" id="closeModal" title="Close">&times;</button>
+    <img id="modalImg" class="modal-content" src="" alt="">
+    <div class="modal-controls">
+      <button class="modal-btn" id="prevBtn">&larr; Previous</button>
+      <button class="modal-btn" id="nextBtn">Next &rarr;</button>
+    </div>
+  </div>
+
+  <script>
+    // Get elements
+    const gallery = document.getElementById('gallery');
+    const images = Array.from(gallery.getElementsByTagName('img'));
+    const modal = document.getElementById('modal');
+    const modalImg = document.getElementById('modalImg');
+    const closeModal = document.getElementById('closeModal');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    let currentIndex = 0;
+
+    function showModal(index) {
+      currentIndex = index;
+      modalImg.src = images[index].src;
+      modal.style.display = 'flex';
+    }
+
+    function closeModalFunc() {
+      modal.style.display = 'none';
+      modalImg.src = '';
+    }
+
+    function showNext() {
+      currentIndex = (currentIndex + 1) % images.length;
+      modalImg.src = images[currentIndex].src;
+    }
+
+    function showPrev() {
+      currentIndex = (currentIndex - 1 + images.length) % images.length;
+      modalImg.src = images[currentIndex].src;
+    }
+
+    images.forEach((img, idx) => {
+      img.addEventListener('click', () => showModal(idx));
+    });
+    closeModal.addEventListener('click', closeModalFunc);
+    nextBtn.addEventListener('click', showNext);
+    prevBtn.addEventListener('click', showPrev);
+
+    // Allow closing modal with ESC
+    window.addEventListener('keydown', (e) => {
+      if (modal.style.display === 'flex') {
+        if (e.key === 'Escape') closeModalFunc();
+        if (e.key === 'ArrowRight') showNext();
+        if (e.key === 'ArrowLeft') showPrev();
+      }
+    });
+    // Close modal by clicking outside image
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModalFunc();
+    });
+  </script>
+</body>
+</html>
