@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Quiz 1 - PLD Quiz</title>
+  <style>
+    body {
+      background: #181a1b;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      background: #23272b;
+      padding: 2em 2em 2em 2em;
+      border-radius: 16px;
+      box-shadow: 0 6px 32px rgba(0,0,0,0.6);
+      max-width: 400px;
+      width: 100%;
+    }
+    h1,h2 {
+      color: #4dffea;
+      text-align: center;
+    }
+    .question-area {
+      margin-top: 1em;
+      text-align: left;
+    }
+    .options {
+      margin-top: 1em;
+      display: flex;
+      flex-direction: column;
+      gap: 1em;
+    }
+    .option-btn {
+      background: #353b3e;
+      color: #fff;
+      border: 2px solid #4dffea;
+      border-radius: 8px;
+      padding: 0.7em 1em;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background 0.2s, color 0.2s, border 0.2s;
+      text-align: left;
+    }
+    .option-btn.selected, .option-btn:active {
+      background: #4dffea;
+      color: #181a1b;
+      border: 2px solid #34c8b6;
+    }
+    .next-btn {
+      background: #4dffea;
+      color: #181a1b;
+      border: none;
+      border-radius: 8px;
+      padding: 0.8em 2em;
+      font-weight: bold;
+      font-size: 1.1em;
+      margin: 2em auto 0 auto;
+      display: block;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .next-btn:hover {
+      background: #34c8b6;
+      color: #fff;
+    }
+    .result-area {
+      text-align: center;
+      margin-top: 2em;
+    }
+    .score {
+      font-size: 1.5em;
+      color: #4dffea;
+      margin-bottom: 1em;
+    }
+    ul.your-answers {
+      list-style: none;
+      padding: 0;
+      margin: 1em 0 0 0;
+      text-align: left;
+    }
+    ul.your-answers li {
+      margin-bottom: 0.5em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="mainContainer">
+    <h1>Quiz 1</h1>
+    <div class="question-area" id="questionArea"></div>
+    <div class="result-area" id="resultArea" style="display:none;"></div>
+  </div>
+  <script>
+    // Quiz 1 data (10 multiple-choice questions)
+    const questions = [
+      {
+        q: "What is the capital of France?",
+        options: ["Berlin", "Paris", "London", "Rome"],
+        answer: 1
+      },
+      {
+        q: "Which planet is known as the Red Planet?",
+        options: ["Earth", "Venus", "Mars", "Jupiter"],
+        answer: 2
+      },
+      {
+        q: "Who wrote 'Romeo and Juliet'?",
+        options: ["Charles Dickens", "Jane Austen", "William Shakespeare", "Mark Twain"],
+        answer: 2
+      },
+      {
+        q: "What is 7 x 8?",
+        options: ["54", "56", "64", "58"],
+        answer: 1
+      },
+      {
+        q: "Which gas do plants absorb from the atmosphere?",
+        options: ["Oxygen", "Nitrogen", "Carbon Dioxide", "Helium"],
+        answer: 2
+      },
+      {
+        q: "What is the largest mammal?",
+        options: ["Elephant", "Blue Whale", "Giraffe", "Rhino"],
+        answer: 1
+      },
+      {
+        q: "Which continent is the Sahara Desert located in?",
+        options: ["Asia", "Europe", "Africa", "Australia"],
+        answer: 2
+      },
+      {
+        q: "What is the square root of 81?",
+        options: ["7", "8", "9", "10"],
+        answer: 2
+      },
+      {
+        q: "Which language is mainly spoken in Brazil?",
+        options: ["Spanish", "Portuguese", "French", "English"],
+        answer: 1
+      },
+      {
+        q: "What is H2O commonly known as?",
+        options: ["Hydrogen", "Oxygen", "Salt", "Water"],
+        answer: 3
+      }
+    ];
+
+    let currentQuestionIndex = 0;
+    let userAnswers = [];
+
+    function showQuestion() {
+      const questionObj = questions[currentQuestionIndex];
+      const questionArea = document.getElementById('questionArea');
+      questionArea.innerHTML = `
+        <h2>Question ${currentQuestionIndex + 1} of ${questions.length}</h2>
+        <div>${questionObj.q}</div>
+        <div class="options" id="options"></div>
+        <button class="next-btn" id="nextBtn" disabled>Next</button>
+      `;
+
+      const optionsDiv = document.getElementById('options');
+      questionObj.options.forEach((opt, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = opt;
+        btn.onclick = () => selectOption(i, btn);
+        optionsDiv.appendChild(btn);
+      });
+
+      document.getElementById('nextBtn').onclick = nextQuestion;
+    }
+
+    function selectOption(optionIdx, btn) {
+      // Remove selection from other buttons
+      document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+
+      userAnswers[currentQuestionIndex] = optionIdx;
+      document.getElementById('nextBtn').disabled = false;
+    }
+
+    function nextQuestion() {
+      currentQuestionIndex++;
+      if (currentQuestionIndex < questions.length) {
+        showQuestion();
+      } else {
+        showResults();
+      }
+    }
+
+    function showResults() {
+      document.getElementById('questionArea').style.display = 'none';
+      const resultArea = document.getElementById('resultArea');
+      let score = 0;
+      let answersList = '';
+      questions.forEach((q, i) => {
+        const correct = userAnswers[i] === q.answer;
+        if (correct) score++;
+        answersList += `<li>
+          <strong>Q${i+1}:</strong> ${q.q}<br>
+          <span style="color:${correct ? '#4dffea' : '#fa5252'}">
+            Your answer: ${q.options[userAnswers[i]] ?? "No answer"} ${correct ? '✓' : '✗'}
+          </span>
+        </li>`;
+      });
+      resultArea.innerHTML = `
+        <div class="score">You scored ${score} out of ${questions.length}!</div>
+        <ul class="your-answers">${answersList}</ul>
+        <button class="quiz-btn" onclick="restartQuiz()">Try Again</button>
+        <a class="quiz-btn" href="quiz.html">Back to Quiz List</a>
+      `;
+      resultArea.style.display = '';
+    }
+
+    function restartQuiz() {
+      currentQuestionIndex = 0;
+      userAnswers = [];
+      document.getElementById('resultArea').style.display = 'none';
+      document.getElementById('questionArea').style.display = '';
+      showQuestion();
+    }
+
+    // Start the quiz on page load
+    showQuestion();
+  </script>
+</body>
+</html>
