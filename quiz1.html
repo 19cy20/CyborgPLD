@@ -91,30 +91,12 @@
   </style>
 </head>
 <body>
-  <div id="passwordContainer" class="container">
-    <h1>Quiz 1</h1>
-    <p>Enter the password to start the quiz:</p>
-    <input type="password" id="quizPassword" placeholder="Password">
-    <button onclick="checkPassword()">Enter</button>
-    <p id="passwordError" style="color:#fa5252;"></p>
-  </div>
-  <div class="container" id="mainContainer" style="display:none;">
+ <body>
+  <div class="container" id="mainContainer">
     <h1>Quiz 1</h1>
     <div class="question-area" id="questionArea"></div>
     <div class="result-area" id="resultArea" style="display:none;"></div>
   </div>
-  <script>
-    // Password logic
-    function checkPassword() {
-      const entered = document.getElementById('quizPassword').value;
-      if (entered === "498") {
-        document.getElementById('passwordContainer').style.display = 'none';
-        document.getElementById('mainContainer').style.display = '';
-        showQuestion(); // Start the quiz!
-      } else {
-        document.getElementById('passwordError').textContent = "Incorrect password.";
-      }
-    }
   <script>
     // Quiz 1 data (10 multiple-choice questions)
     const questions = [
