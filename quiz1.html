@@ -88,22 +88,49 @@
     ul.your-answers li {
       margin-bottom: 0.5em;
     }
+    /* Recording styles */
+    .recording-area {
+      margin-top: 1.5em;
+      margin-bottom: 1em;
+      text-align: center;
+    }
+    .rec-btn {
+      background: #4dffea;
+      color: #181a1b;
+      border: none;
+      border-radius: 8px;
+      padding: 0.6em 1.2em;
+      font-weight: bold;
+      font-size: 1em;
+      margin: 0 0.3em;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .rec-btn:disabled {
+      background: #aaa;
+      color: #666;
+      cursor: not-allowed;
+    }
+    #audioPlayback {
+      display: block;
+      margin: 1em auto 0 auto;
+      width: 100%;
+      max-width: 300px;
+    }
   </style>
 </head>
 <body>
- <body>
   <div class="container" id="mainContainer">
     <h1>Quiz 1</h1>
     <div class="question-area" id="questionArea"></div>
     <div class="result-area" id="resultArea" style="display:none;"></div>
   </div>
   <script>
-    // Quiz 1 data (10 multiple-choice questions)
+    // Quiz 1 data (first question is recording)
     const questions = [
       {
-        q: "What is the capital of France?",
-        options: ["Berlin", "Paris", "London", "Rome"],
-        answer: 1
+        q: "How to pronounce S-A-T? Record your response.",
+        type: "record", // Custom type for recording
       },
       {
         q: "Which planet is known as the Red Planet?",
@@ -154,34 +181,82 @@
 
     let currentQuestionIndex = 0;
     let userAnswers = [];
+    let recordedAudioURL = null;
 
     function showQuestion() {
       const questionObj = questions[currentQuestionIndex];
       const questionArea = document.getElementById('questionArea');
-      questionArea.innerHTML = `
-        <h2>Question ${currentQuestionIndex + 1} of ${questions.length}</h2>
-        <div>${questionObj.q}</div>
-        <div class="options" id="options"></div>
-        <button class="next-btn" id="nextBtn" disabled>Next</button>
-      `;
 
-      const optionsDiv = document.getElementById('options');
-      questionObj.options.forEach((opt, i) => {
-        const btn = document.createElement('button');
-        btn.className = 'option-btn';
-        btn.textContent = opt;
-        btn.onclick = () => selectOption(i, btn);
-        optionsDiv.appendChild(btn);
-      });
+      if(questionObj.type === "record") {
+        questionArea.innerHTML = `
+          <h2>Question 1 of ${questions.length}</h2>
+          <div>${questionObj.q}</div>
+          <div class="recording-area">
+            <button class="rec-btn" id="startRec">Start Recording</button>
+            <button class="rec-btn" id="stopRec" disabled>Stop Recording</button>
+            <audio id="audioPlayback" controls style="display:none;"></audio>
+          </div>
+          <button class="next-btn" id="nextBtn" disabled>Next</button>
+        `;
+        setupRecording();
+      } else {
+        questionArea.innerHTML = `
+          <h2>Question ${currentQuestionIndex + 1} of ${questions.length}</h2>
+          <div>${questionObj.q}</div>
+          <div class="options" id="options"></div>
+          <button class="next-btn" id="nextBtn" disabled>Next</button>
+        `;
+        const optionsDiv = document.getElementById('options');
+        questionObj.options.forEach((opt, i) => {
+          const btn = document.createElement('button');
+          btn.className = 'option-btn';
+          btn.textContent = opt;
+          btn.onclick = () => selectOption(i, btn);
+          optionsDiv.appendChild(btn);
+        });
+        document.getElementById('nextBtn').onclick = nextQuestion;
+      }
+    }
 
-      document.getElementById('nextBtn').onclick = nextQuestion;
+    // Recording feature for question 1
+    function setupRecording() {
+      let mediaRecorder, audioChunks = [];
+      const startBtn = document.getElementById('startRec');
+      const stopBtn = document.getElementById('stopRec');
+      const audio = document.getElementById('audioPlayback');
+      const nextBtn = document.getElementById('nextBtn');
+
+      startBtn.onclick = async function() {
+        audioChunks = [];
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.start();
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        audio.style.display = 'none';
+        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunks, {type: 'audio/webm'});
+          recordedAudioURL = URL.createObjectURL(audioBlob);
+          audio.src = recordedAudioURL;
+          audio.style.display = '';
+          nextBtn.disabled = false;
+        };
+      };
+      stopBtn.onclick = function() {
+        mediaRecorder.stop();
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+      };
+      nextBtn.onclick = function() {
+        userAnswers[currentQuestionIndex] = "Recorded";
+        nextQuestion();
+      };
     }
 
     function selectOption(optionIdx, btn) {
-      // Remove selection from other buttons
       document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
-
       userAnswers[currentQuestionIndex] = optionIdx;
       document.getElementById('nextBtn').disabled = false;
     }
@@ -201,17 +276,26 @@
       let score = 0;
       let answersList = '';
       questions.forEach((q, i) => {
-        const correct = userAnswers[i] === q.answer;
-        if (correct) score++;
-        answersList += `<li>
-          <strong>Q${i+1}:</strong> ${q.q}<br>
-          <span style="color:${correct ? '#4dffea' : '#fa5252'}">
-            Your answer: ${q.options[userAnswers[i]] ?? "No answer"} ${correct ? '✓' : '✗'}
-          </span>
-        </li>`;
+        if(q.type === "record") {
+          answersList += `<li>
+            <strong>Q${i+1}:</strong> ${q.q}<br>
+            <span>
+              Your recording: ${recordedAudioURL ? `<audio src="${recordedAudioURL}" controls></audio>` : "No recording"}
+            </span>
+          </li>`;
+        } else {
+          const correct = userAnswers[i] === q.answer;
+          if (correct) score++;
+          answersList += `<li>
+            <strong>Q${i+1}:</strong> ${q.q}<br>
+            <span style="color:${correct ? '#4dffea' : '#fa5252'}">
+              Your answer: ${q.options[userAnswers[i]] ?? "No answer"} ${correct ? '✓' : '✗'}
+            </span>
+          </li>`;
+        }
       });
       resultArea.innerHTML = `
-        <div class="score">You scored ${score} out of ${questions.length}!</div>
+        <div class="score">You scored ${score} out of ${questions.length - 1} (not counting recording)!</div>
         <ul class="your-answers">${answersList}</ul>
         <button class="quiz-btn" onclick="restartQuiz()">Try Again</button>
         <a class="quiz-btn" href="quiz.html">Back to Quiz List</a>
@@ -222,6 +306,7 @@
     function restartQuiz() {
       currentQuestionIndex = 0;
       userAnswers = [];
+      recordedAudioURL = null;
       document.getElementById('resultArea').style.display = 'none';
       document.getElementById('questionArea').style.display = '';
       showQuestion();
