@@ -53,10 +53,54 @@
       background: #34c8b6;
       color: #fff;
     }
+    /* Password error style */
+    #passwordError {
+      color: #fa5252;
+      margin-top: 1em;
+      min-height: 1.5em;
+    }
+    /* Hide outline for input/button when clicked */
+    input:focus, button:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px #4dffea;
+    }
+    .password-container input[type="password"] {
+      padding: 0.6em;
+      border-radius: 8px;
+      border: 1px solid #4dffea;
+      margin-right: 0.5em;
+      font-size: 1em;
+    }
+    .password-container button {
+      background: #4dffea;
+      color: #181a1b;
+      border: none;
+      border-radius: 8px;
+      padding: 0.6em 1.2em;
+      font-weight: bold;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .password-container button:hover {
+      background: #34c8b6;
+      color: #fff;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
+  <!-- Password Protection Container -->
+  <div class="container" id="passwordContainer">
+    <h1>PLD Quiz List</h1>
+    <div class="password-container">
+      <p>Enter the password to view quizzes:</p>
+      <input type="password" id="quizPassword" placeholder="Password" autocomplete="off">
+      <button onclick="checkPassword()">Enter</button>
+      <div id="passwordError"></div>
+    </div>
+  </div>
+  <!-- Quiz List Container (hidden by default) -->
+  <div class="container" id="quizListContainer" style="display:none;">
     <h1>PLD Quiz List</h1>
     <div class="quiz-list">
       <a class="quiz-btn" href="quiz1.html">Quiz 1</a>
@@ -66,5 +110,22 @@
       <a class="quiz-btn" href="quiz5.html">Quiz 5</a>
     </div>
   </div>
+  <script>
+    function checkPassword() {
+      const entered = document.getElementById('quizPassword').value;
+      if (entered === "498") {
+        document.getElementById('passwordContainer').style.display = 'none';
+        document.getElementById('quizListContainer').style.display = '';
+      } else {
+        document.getElementById('passwordError').textContent = "Incorrect password.";
+      }
+    }
+    // Allow pressing Enter to submit password
+    document.getElementById('quizPassword').addEventListener('keydown', function(e) {
+      if (e.key === "Enter") {
+        checkPassword();
+      }
+    });
+  </script>
 </body>
 </html>
